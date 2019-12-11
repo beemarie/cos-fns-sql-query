@@ -16,11 +16,11 @@ async function main(params) {
     iam_apikey: params.apikey,
   });
   try {
-    const { url, bucket } = params;
+    const { body, bucket } = params;
     let { key } = params;
 
     const classifyParams = {
-      url,
+      url: body,
       threshold: 0.6,
     };
     let vrClasses;
@@ -31,14 +31,19 @@ async function main(params) {
       }).catch((err) => {
         console.log('error:', err);
       });
+    const filename = key;
 
     const n = key.lastIndexOf('.');
     key = key.substring(0, n !== -1 ? n : key.length);
+    const returnJSON = {
+      id: filename,
+      classes: vrClasses,
+    };
 
     return {
       bucket: `${bucket}-processed`,
-      key: `${key}_vr.txt`,
-      body: JSON.stringify(vrClasses),
+      key: `needsMatch_${key}_vr.txt`,
+      body: JSON.stringify(returnJSON),
     };
   } catch (err) {
     console.log(err);
@@ -49,5 +54,6 @@ async function main(params) {
     });
   }
 }
-
-exports.main = main;
+ 
+ exports.main = main;
+ 
