@@ -76,12 +76,12 @@ project:
             function: find_and_write_similar_items.js
             runtime: nodejs:10
       sequences:
-      vrandwrite:
-          actions: image_processing_vr, cloud-object-storage/object-write
-      imagesequence:
-          actions: parse_trigger, cloud-object-storage/client-get-signed-url, vrandwrite
-      sqlquerysequence:
-          actions: parse_params_sql_query, openwhisk-sql-query/sql-query, call_sql_job_results, find_and_write_similar_items
+        vrandwrite:
+            actions: image_processing_vr, cloud-object-storage/object-write
+        imagesequence:
+            actions: parse_trigger, cloud-object-storage/client-get-signed-url, vrandwrite
+        sqlquerysequence:
+            actions: parse_params_sql_query, openwhisk-sql-query/sql-query, call_sql_job_results, find_and_write_similar_items
       rules:
           # Rule
           # Creating rule that maps COS change trigger to sequence
