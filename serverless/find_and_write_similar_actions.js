@@ -18,10 +18,7 @@ async function main(params) {
   // consolidate classes into one object
   for (let i = 0; i < jsonobj.length - 1; i += 1) {
     console.log("ITEM", jsonobj[i])
-    if (i === 0) {
-      currentid = jsonobj[i].id;
-      classes[currentid] = [];
-    } else if (currentid !== jsonobj[i].id) {
+    if (i === 0 || currentid !== jsonobj[i].id) {
       currentid = jsonobj[i].id;
       classes[currentid] = [];
     }
