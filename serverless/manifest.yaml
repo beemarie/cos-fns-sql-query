@@ -35,13 +35,6 @@ project:
   namespace: _
   packages:
     $PACKAGE_NAME:
-      dependencies:
-          # binding cloud object storage package named cloud-object-storage
-          cloud-object-storage:
-              location: https://github.com/ibm-functions/package-cloud-object-storage/runtimes/nodejs
-          # binding cloud object storage package named cloud-object-storage
-          openwhisk-sql-query:
-              location: https://github.com/ibm-functions/package-cloud-object-storage/runtimes/nodejs
       triggers:
           # Trigger
           # Creating trigger to fire events when data is inserted into COS
@@ -59,8 +52,6 @@ project:
                   bucket: $BUCKET_NAME-processed
                   endpoint: $ENDPOINT
                   event_types: write
-                  statement: "WITH explode_classes as (SELECT id, explode(classes) theclass FROM cos://us-south/my-images-bmv-processed STORED AS JSON) SELECT theclass.class, COUNT(id) as NumPicsWithClass FROM explode_classes GROUP BY theclass.class"
-                  resultset_target: "$COS_SQL_TARGET"
       actions:
           parse_trigger:
             function: parse_trigger.js
@@ -74,6 +65,9 @@ project:
           parse_params_sql_query:
             function: parse_params_sql_query.js
             runtime: nodejs:10
+            inputs:
+              statement: "WITH explode_classes as (SELECT id, explode(classes) theclass FROM cos://us-south/my-images-bmv-processed STORED AS JSON) SELECT theclass.class, COUNT(id) as NumPicsWithClass FROM explode_classes GROUP BY theclass.class"
+              resultset_target: $COS_SQL_TARGET
           call_sql_job_results:
             function: call_sql_job_results.js
             runtime: nodejs:10

@@ -112,9 +112,10 @@ The SQL Query package relies on the Cloud Object Storage package, and has instal
 ### Create Required Environment Variables and Deploy Cloud Functions
 To deploy the rest of the functions required in this application, we'll use the `ibm fn deploy` command again.
 
-1. Let's clone the application.
+1. Let's clone the application, and change directories.
     ```
-    git clone git@github.com:IBM/cos-trigger-functions.git
+    git clone git@github.com:IBM/openwhisk-sql-query.git
+    cd cos-fns-sql-query
     ```
 
 1. Take a look at the `serverless/manifest.yaml file`. You should see a manifest describing the various actions, triggers, packages, and sequences to be created. You will also notice that there are a number of environment variables you should set locally before running this manifest file.
@@ -156,4 +157,17 @@ To deploy the rest of the functions required in this application, we'll use the 
 
 3. Click Buckets on the left side menu, and go to your `my-images-processed` bucket. You should see a `.txt` file containing the information returned from the Visual Recognition service.
 
-4. When an image was added to this `-processed` bucket, a trigger was fired to run a SQL query. Let's go see the SQL query results. Click Buckets on the left side menu, and go to your `sql-query-results` bucket. There should be a file ending in _csv, which contains the results of the SQL query! 
+4. When the `.txt` file was added to this `-processed` bucket, a trigger was fired to run a SQL query. The SQL Query will aggregate all of the classes across these text files, so you can tell what types of images you have the most of in your database.
+    ```
+    WITH explode_classes as (SELECT id, explode(classes) theclass FROM cos://us-south/my-images-bmv-processed STORED AS JSON) SELECT theclass.class, COUNT(id) as NumPicsWithClass FROM explode_classes GROUP BY theclass.class
+    ```
+
+Let's go see the SQL query results. Click Buckets on the left side menu, and go to your `sql-query-results` bucket. There should be a file ending in _csv, which contains the results of the SQL query!
+
+5. It's possible that once you get your aggregated results, you want to continue to do some processing in IBM Cloud Functions. To that end, we've included an IBM Cloud Functions action to read this query result. You can see the results of that in the IBM Cloud Functions Monitor tab.
+
+    1. Go to IBM Cloud Functions [Monitor tab](https://cloud.ibm.com/functions/dashboard).
+
+    2. Here, you can see all of your actions run. The most recent one should be called `openwhisk-sql-query/result-set`. Click the activation id for this action, and you can view the results in the response body.  
+
+    3. You could now do some additional processing on this information using your IBM Cloud Functions!
