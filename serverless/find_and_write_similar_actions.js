@@ -12,7 +12,7 @@ const openwhisk = require('openwhisk');
 async function main(params) {
   const namespace = process.env.__OW_NAMESPACE;
 
-  const jsonobj = csvJSON(params.message.body); 
+  const jsonobj = csvJSON(params.message.body);
   const classes = {};
   let currentid = '';
 
@@ -64,7 +64,7 @@ async function main(params) {
   if (needsMatchPrefix) {
     const deleteresult = await callRequiredCOSAction(namespace, bucket, readdeletekey, '', 'delete');
   }
-  //object write
+  // object write
   const writeresult = await callRequiredCOSAction(namespace, bucket, key, JSON.stringify(readResultJSON), 'write');
  }
  
@@ -86,7 +86,7 @@ function findMatches(array1, array2) {
   let count = 0;
   for (let i = 0; i < array1.length; i += 1) {
     if (array2.indexOf(array1[i]) > -1) {
-      count += 1
+      count += 1;
     }
   }
   return count;
@@ -94,9 +94,9 @@ function findMatches(array1, array2) {
 
 // var csv is the CSV file with headers
 function csvJSON(csv) {
-  const lines = csv.split("\n");
+  const lines = csv.split('\n');
   const result = [];
-  const headers = lines[0].split(",");
+  const headers = lines[0].split(',');
 
   for (let i = 1; i < lines.length; i += 1) {
     const obj = { };

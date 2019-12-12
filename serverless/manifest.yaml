@@ -25,9 +25,10 @@
 #   RULE_NAME_NEW
 #   TRIGGER_NAME_PROCESSED
 #   RULE_NAME_PROCESSED
+#   COS_SQL_TARGET
 #   BUCKET_NAME
 #   ENDPOINT (cos endpoint for your buckets)
-#   API_KEY (watson visual recognition)
+#   VR_API_KEY (watson visual recognition)
 #   VERSION (watson visual recognition version)
 
 project:
@@ -37,6 +38,9 @@ project:
       dependencies:
           # binding cloud object storage package named cloud-object-storage
           cloud-object-storage:
+              location: https://github.com/ibm-functions/package-cloud-object-storage/runtimes/nodejs
+          # binding cloud object storage package named cloud-object-storage
+          openwhisk-sql-query:
               location: https://github.com/ibm-functions/package-cloud-object-storage/runtimes/nodejs
       triggers:
           # Trigger
@@ -55,7 +59,8 @@ project:
                   bucket: $BUCKET_NAME-processed
                   endpoint: $ENDPOINT
                   event_types: write
-                  prefix: needsMatch_
+                  statement: "WITH explode_classes as (SELECT id, explode(classes) theclass FROM cos://us-south/my-images-bmv-processed STORED AS JSON) SELECT theclass.class, COUNT(id) as NumPicsWithClass FROM explode_classes GROUP BY theclass.class"
+                  resultset_target: "$COS_SQL_TARGET"
       actions:
           parse_trigger:
             function: parse_trigger.js
@@ -64,7 +69,7 @@ project:
             function: image_processing_vr.js
             runtime: nodejs:10
             inputs:
-              apikey: $API_KEY
+              apikey: $VR_API_KEY
               version: $VERSION
           parse_params_sql_query:
             function: parse_params_sql_query.js
@@ -72,16 +77,13 @@ project:
           call_sql_job_results:
             function: call_sql_job_results.js
             runtime: nodejs:10
-          find_and_write_similar_items:
-            function: find_and_write_similar_items.js
-            runtime: nodejs:10
       sequences:
         vrandwrite:
             actions: image_processing_vr, cloud-object-storage/object-write
         imagesequence:
             actions: parse_trigger, cloud-object-storage/client-get-signed-url, vrandwrite
         sqlquerysequence:
-            actions: parse_params_sql_query, openwhisk-sql-query/sql-query, call_sql_job_results, find_and_write_similar_items
+            actions: parse_params_sql_query, openwhisk-sql-query/sql-query, call_sql_job_results
       rules:
           # Rule
           # Creating rule that maps COS change trigger to sequence
@@ -90,4 +92,4 @@ project:
               action: imagesequence
           $RULE_NAME_PROCESSED:
               trigger: $TRIGGER_NAME_PROCESSED
-              action: imagesequence
+              action: sqlquerysequence
